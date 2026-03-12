@@ -68,4 +68,14 @@ dependencies {
 
     // 4. Important: Add Extended Icons (needed for the BackHand icon we used earlier)
     implementation("androidx.compose.material:material-icons-extended")
+
+    val camerax_version = "1.3.1" // Stable version for 2026
+    implementation("androidx.camera:camera-core:$camerax_version")
+    implementation("androidx.camera:camera-camera2:$camerax_version")
+    implementation("androidx.camera:camera-lifecycle:$camerax_version")
+    implementation("androidx.camera:camera-view:$camerax_version")
+    implementation("androidx.camera:camera-extensions:$camerax_version")
+
+    // For permission handling in Compose
+    implementation("com.google.accompanist:accompanist-permissions:0.34.0")
 }

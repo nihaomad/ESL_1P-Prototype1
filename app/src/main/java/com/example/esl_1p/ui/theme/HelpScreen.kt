@@ -10,7 +10,7 @@ import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material.icons.filled.TipsAndUpdates
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -21,33 +21,35 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpScreen(onBack: () -> Unit) {
-    BackHandler {
-        onBack() // This triggers logic to set state back to "home" instead of closing the app.
-    }
+    BackHandler { onBack() }
 
-    val faqs = listOf(
-        FAQItem(
-            "How to get accurate translations?",
-            "For the best results, ensure you are in a well-lit area. Avoid having bright lights directly behind you (like a window), as this creates a silhouette and makes it hard for the AI to see your hand details."
-        ),
-        FAQItem(
-            "Where should I place my hands?",
-            "Keep your hands approximately 1 to 2 feet away from the camera. Ensure your entire hand—from wrist to fingertips—is visible within the camera frame."
-        ),
-        FAQItem(
-            "The app isn't detecting my sign?",
-            "Try to perform the sign at a steady pace. Fast or blurry movements can sometimes be missed by the current prototype. Make sure your background isn't too cluttered."
-        ),
-        FAQItem(
-            "Does it support all sign languages?",
-            "No, ESL_1P is in a prototype phase and will only support Filipino Sign Language (FSL) basics."
+    // --- State Management ---
+    var selectedLanguage by remember { mutableStateOf("English") }
+    var expanded by remember { mutableStateOf(false) }
+
+    // --- Content Mapping ---
+    val isEnglish = selectedLanguage == "English"
+
+    val faqs = if (isEnglish) {
+        listOf(
+            FAQItem("How to get accurate translations?", "For the best results, ensure you are in a well-lit area. Avoid having bright lights directly behind you."),
+            FAQItem("Where should I place my hands?", "Keep your hands approximately 1 to 2 feet away from the camera. Ensure your entire hand is visible."),
+            FAQItem("The app isn't detecting my sign?", "Try to perform the sign at a steady pace. Fast or blurry movements can be missed."),
+            FAQItem("Does it support all sign languages?", "No, ESL_1P is in a prototype phase and only supports Filipino Sign Language (FSL) basics.")
         )
-    )
+    } else {
+        listOf(
+            FAQItem("Paano makakuha ng tumpak na salin?", "Para sa pinakamagandang resulta, siguraduhing maliwanag ang paligid. Iwasan ang matinding ilaw sa iyong likuran."),
+            FAQItem("Saan dapat ilagay ang mga kamay?", "Ilayo ang kamay ng 1 hanggang 2 talampakan mula sa camera. Siguraduhing kitang-kita ang buong kamay."),
+            FAQItem("Bakit hindi nadedetect ang sign ko?", "Subukang gawin ang sign sa katamtamang bilis. Maaaring hindi mabasa ang masyadong mabilis o malabong galaw."),
+            FAQItem("Suportado ba nito ang lahat ng sign language?", "Hindi, ang ESL_1P ay nasa prototype phase pa lamang at tanging Filipino Sign Language (FSL) basics ang suportado.")
+        )
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Help & Guide") },
+                title = { Text(if (isEnglish) "Help & Guide" else "Tulong at Gabay") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -63,33 +65,71 @@ fun HelpScreen(onBack: () -> Unit) {
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Language Selector Section
             item {
-                Text(
-                    text = "Quick Tips for Success",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 16.dp)
-                )
-            }
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded },
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                ) {
+                    OutlinedTextField(
+                        value = selectedLanguage,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Language / Wika") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
 
-            // Quick Tips Cards
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TipCard(Modifier.weight(1f), "Good Lighting", Icons.Default.Lightbulb)
-                    TipCard(Modifier.weight(1f), "Clear View", Icons.Default.TipsAndUpdates)
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("English") },
+                            onClick = { selectedLanguage = "English"; expanded = false }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Filipino") },
+                            onClick = { selectedLanguage = "Filipino"; expanded = false }
+                        )
+                    }
                 }
             }
 
             item {
                 Text(
-                    text = "Frequently Asked Questions",
+                    text = if (isEnglish) "Quick Tips for Success" else "Mga Tip para sa Tagumpay",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            item {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TipCard(
+                        Modifier.weight(1f),
+                        if (isEnglish) "Good Lighting" else "Tamang Ilaw",
+                        Icons.Default.Lightbulb
+                    )
+                    TipCard(
+                        Modifier.weight(1f),
+                        if (isEnglish) "Clear View" else "Malinaw na Tanaw",
+                        Icons.Default.TipsAndUpdates
+                    )
+                }
+            }
+
+            item {
+                Text(
+                    text = if (isEnglish) "Frequently Asked Questions" else "Mga Karaniwang Tanong",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
             }
 
-            // FAQ List
             items(faqs) { faq ->
                 FAQCard(faq)
             }
